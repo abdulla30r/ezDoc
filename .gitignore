@@ -6,3 +6,5 @@ backend/node_modules/
 .env
 backend/.env
 
+admin/node_modules/
+
