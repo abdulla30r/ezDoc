@@ -7,11 +7,31 @@ import jwt from "jsonwebtoken";
 // API for adding doctor
 const addDoctor = async (req, res) => {
   try {
-    const { name, email, password, speciality, degree, experience, about, fees, address } = req.body;
+    const {
+      name,
+      email,
+      password,
+      speciality,
+      degree,
+      experience,
+      about,
+      fees,
+      address,
+    } = req.body;
     const imageFile = req.file;
 
     // check if all field are filled
-    if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !speciality ||
+      !degree ||
+      !experience ||
+      !about ||
+      !fees ||
+      !address
+    ) {
       console.log("all fields are required");
       return res.json({ success: false, message: "All fields are required" });
     }
@@ -23,7 +43,10 @@ const addDoctor = async (req, res) => {
 
     // check if password is at least 8 characters long
     if (password.length < 8) {
-      return res.json({ success: false, message: "Password must be at least 8 characters long" });
+      return res.json({
+        success: false,
+        message: "Password must be at least 8 characters long",
+      });
     }
 
     // hashing password
@@ -31,7 +54,9 @@ const addDoctor = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // upload image to cloudinary
-    const imgUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
+    const imgUpload = await cloudinary.uploader.upload(imageFile.path, {
+      resource_type: "image",
+    });
     const imageUrl = imgUpload.secure_url;
 
     const doctorData = {
@@ -61,7 +86,10 @@ const addDoctor = async (req, res) => {
 const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+    if (
+      email === process.env.ADMIN_EMAIL &&
+      password === process.env.ADMIN_PASSWORD
+    ) {
       const token = jwt.sign(email + password, process.env.JWT_SECRET);
       return res.json({ success: true, token });
     } else {
