@@ -48,8 +48,22 @@ const AddDoctor = () => {
         { headers: { aToken } }
       );
 
+      if (data.message === "Unauthorized. Login required") {
+        return toast.error(data.message);
+      }
+
       if (data.success) {
         toast.success(data.message);
+        setName("");
+        setEmail("");
+        setPassword("");
+        setExperience("1 year");
+        setFees("");
+        setAbout("");
+        setSpeciality("General physician");
+        setDegree("");
+        setAddress1("");
+        setAddress2("");
       } else {
         toast.error(data.message);
       }
