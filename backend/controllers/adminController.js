@@ -78,7 +78,6 @@ const addDoctor = async (req, res) => {
     res.json({ success: true, message: "Doctor added successfully" });
   } catch (error) {
     console.log(error);
-
     res.json({ success: false, message: error.message });
   }
 };
