@@ -13,14 +13,13 @@ export const authAdmin = async (req, res, next) => {
 
     try {
       const token_decode = jwt.verify(atoken, process.env.JWT_SECRET);
+      if (token_decode !==process.env.ADMIN_EMAIL + process.env.ADMIN_PASSWORD) {
+        return res.json({
+          success: false,
+          message: "Unauthorized. Login required",
+        });
+      }
     } catch {
-      return res.json({
-        success: false,
-        message: "Unauthorized. Login required",
-      });
-    }
-
-    if (token_decode !== process.env.ADMIN_EMAIL + process.env.ADMIN_PASSWORD) {
       return res.json({
         success: false,
         message: "Unauthorized. Login required",
