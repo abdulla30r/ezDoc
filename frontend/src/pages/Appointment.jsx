@@ -1,18 +1,22 @@
 import { useContext, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
 import RelatedDoctors from "../components/RelatedDoctors";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 const Appointment = () => {
   const { docId } = useParams();
-  const { doctors, currencySymbol } = useContext(AppContext);
+  const { doctors, currencySymbol, token, backendurl, getDoctorData } = useContext(AppContext);
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
   const [docInfo, setDocInfo] = useState(null);
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState("");
+
+  const navigate = useNavigate();
 
   const fetchDocInfo = async () => {
     const docInfo = doctors.find((doc) => doc._id === docId);
@@ -37,9 +41,7 @@ const Appointment = () => {
 
       //setting hours
       if (today.getDate() === currentDate.getDate()) {
-        currentDate.setHours(
-          currentDate.getHours() > 10 ? currentDate.getHours() + 1 : 10
-        );
+        currentDate.setHours(currentDate.getHours() > 10 ? currentDate.getHours() + 1 : 10);
         currentDate.setMinutes(currentDate.getMinutes() > 30 ? 30 : 0);
       } else {
         currentDate.setHours(10);
@@ -49,18 +51,21 @@ const Appointment = () => {
       let timeSlots = [];
 
       while (currentDate < endTime) {
-        let formattedTime = currentDate.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        let formattedTime = currentDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-        //add slot to array
-        timeSlots.push({
-          dateTime: new Date(currentDate),
-          time: formattedTime,
-        });
+        let day = currentDate.getDate();
+        let month = currentDate.getMonth() + 1;
+        let year = currentDate.getFullYear();
 
-        //Incremetn current timme by 30 minutes
+        const slotDate = day + "-" + month + "-" + year;
+
+        const slotTime = formattedTime;
+        const isSlotAvailable = docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(slotTime) ? false : true;
+
+        if (isSlotAvailable) {
+          timeSlots.push({ dateTime: new Date(currentDate), time: formattedTime });
+        }
+        //Increment current timme by 30 minutes
         currentDate.setMinutes(currentDate.getMinutes() + 30);
       }
 
@@ -68,9 +73,35 @@ const Appointment = () => {
     }
   };
 
+  const bookAppointment = async () => {
+    if (!token) {
+      toast.warn("Please login to book an appointment");
+      navigate("/login");
+    }
+
+    try {
+      const date = docSlots[slotIndex][0].dateTime;
+      let day = date.getDate();
+      let month = date.getMonth() + 1;
+      let year = date.getFullYear();
+      const slotDate = day + "-" + month + "-" + year;
+
+      const { data } = await axios.post(backendurl + "/api/user/book-appointment", { docId, slotDate, slotTime }, { headers: { token: token } });
+      if (data.success) {
+        toast.success(data.message);
+        getDoctorData();
+        navigate("/my-appointments");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   useEffect(() => {
     fetchDocInfo();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doctors, docId]);
 
   useEffect(() => {
@@ -87,11 +118,7 @@ const Appointment = () => {
         {/* ---------Doctors Details---------- */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div>
-            <img
-              className="bg-primary w-full sm:max-w-72 rounded-lg"
-              src={docInfo.image}
-              alt=""
-            />
+            <img className="bg-primary w-full sm:max-w-72 rounded-lg" src={docInfo.image} alt="" />
           </div>
 
           <div className="flex-1 border border-gray-400 rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0">
@@ -104,10 +131,7 @@ const Appointment = () => {
               <p>
                 {docInfo.degree} - {docInfo.speciality}
               </p>
-              <button className="py-0.5 px-2 border text-xs rounded-full">
-                {" "}
-                {docInfo.experience}{" "}
-              </button>
+              <button className="py-0.5 px-2 border text-xs rounded-full"> {docInfo.experience} </button>
             </div>
 
             {/* ------------Doctor About------------ */}
@@ -115,9 +139,7 @@ const Appointment = () => {
               <p className="flex items-center gap-1 text-sm font-medium text-gray-900 mt-3">
                 About <img src={assets.info_icon} alt="" />
               </p>
-              <p className="text-sm text-gray-500 max-w-[700px] mt-1">
-                {docInfo.about}
-              </p>
+              <p className="text-sm text-gray-500 max-w-[700px] mt-1">{docInfo.about}</p>
             </div>
             <p className="text-gray-500 font-medium mt-4">
               Appontment fee:{" "}
@@ -137,9 +159,7 @@ const Appointment = () => {
                 <div
                   onClick={() => setSlotIndex(index)}
                   className={`text-center py-6 min-w-16 rounded-full cursor-pointer ${
-                    slotIndex === index
-                      ? "bg-primary text-white"
-                      : "border border-gray-200"
+                    slotIndex === index ? "bg-primary text-white" : "border border-gray-200"
                   }`}
                   key={index}
                 >
@@ -155,9 +175,7 @@ const Appointment = () => {
                 <p
                   onClick={() => setSlotTime(item.time)}
                   className={`text-sm font-light flex-shrink-0 px-5 py-2 rounded-full cursor-pointer ${
-                    item.time === slotTime
-                      ? "bg-primary text-white"
-                      : "text-gray-400 border border-gray-300"
+                    item.time === slotTime ? "bg-primary text-white" : "text-gray-400 border border-gray-300"
                   }`}
                   key={index}
                 >
@@ -166,7 +184,7 @@ const Appointment = () => {
               ))}
           </div>
 
-          <button className="bg-primary text-white text-sm font-light px-14 py-3 rounded-full my-6">
+          <button onClick={bookAppointment} className="bg-primary text-white text-sm font-light px-14 py-3 rounded-full my-6">
             Book an appointment
           </button>
         </div>
