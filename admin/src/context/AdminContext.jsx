@@ -3,6 +3,7 @@ import { createContext } from "react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AdminContext = createContext();
 
 const AdminContextProvider = (props) => {
@@ -27,7 +28,6 @@ const AdminContextProvider = (props) => {
     try {
       const { data } = await axios.post(backendUrl + "/api/admin/change-availability", { docId }, { headers: { aToken } });
       if (data.success) {
-        getAllDoctors();
         toast.success(data.message);
       } else {
         toast.error(data.message);
@@ -38,6 +38,7 @@ const AdminContextProvider = (props) => {
   };
 
   const value = { aToken, setAToken, backendUrl, getAllDoctors, doctors, changeAvailability };
+  // eslint-disable-next-line react/prop-types
   return <AdminContext.Provider value={value}>{props.children}</AdminContext.Provider>;
 };
 export default AdminContextProvider;
