@@ -60,7 +60,8 @@ const Appointment = () => {
         const slotDate = day + "-" + month + "-" + year;
 
         const slotTime = formattedTime;
-        const isSlotAvailable = docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(slotTime) ? false : true;
+
+        const isSlotAvailable = docInfo?.slots_booked?.[slotDate] && docInfo.slots_booked[slotDate].includes(slotTime) ? false : true;
 
         if (isSlotAvailable) {
           timeSlots.push({ dateTime: new Date(currentDate), time: formattedTime });
@@ -101,16 +102,11 @@ const Appointment = () => {
 
   useEffect(() => {
     fetchDocInfo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doctors, docId]);
 
   useEffect(() => {
     getAvailableSlots();
-  }, [docInfo]);
-
-  useEffect(() => {
-    console.log(docSlots);
-  }, [docSlots]);
+  }, [docInfo, docId]);
 
   return (
     docInfo && (

@@ -4,7 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const MyAppointments = () => {
-  const { backendurl, token } = useContext(AppContext);
+  const { backendurl, token, getDoctorData } = useContext(AppContext);
   const [appointmetns, setAppointments] = useState([]);
 
   const getUserAppointments = async () => {
@@ -12,6 +12,21 @@ const MyAppointments = () => {
       const { data } = await axios.get(backendurl + "/api/user/appointments", { headers: { token } });
       if (data.success) {
         setAppointments(data.appointments.reverse());
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const cancelAppointment = async (appointmentId) => {
+    try {
+      const { data } = await axios.post(backendurl + "/api/user/cancel-appointment", { appointmentId }, { headers: { token } });
+      if (data.success) {
+        toast.success(data.message);
+        getUserAppointments();
+        getDoctorData();
       } else {
         toast.error(data.message);
       }
@@ -44,15 +59,37 @@ const MyAppointments = () => {
                 <span className="text-sm text-neutral-700 font-medium">Date & Time : </span> {item.slotDate} | {item.slotTime}
               </p>
             </div>
-            <div></div>
-            <div className="flex flex-col gap-2 justify-end">
-              <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border hover:bg-primary hover:text-white transition-all duration-300">
-                Pay Online
-              </button>
-              <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border hover:bg-red-600 hover:text-white transition-all duration-300">
-                Cancel Appointment
-              </button>
-            </div>
+            {!item.cancelled && !item.paid && (
+              <div>
+                <div className="flex flex-col gap-2 justify-end">
+                  <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border hover:bg-primary hover:text-white transition-all duration-300">
+                    Pay Online
+                  </button>
+
+                  <button
+                    onClick={() => cancelAppointment(item._id)}
+                    className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border hover:bg-red-600 hover:text-white transition-all duration-300"
+                  >
+                    Cancel Appointment
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {item.paid && (
+              <div>
+                <button className="text-sm text-blue-500 text-center sm:min-w-48 py-2 border border-blue-500 hover:bg-red-600 hover:text-white transition-all duration-300 cursor-not-allowed">
+                  Paid
+                </button>
+              </div>
+            )}
+            {item.cancelled && (
+              <div>
+                <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border hover:bg-primary hover:text-white transition-all duration-300 cursor-not-alloweds">
+                  Cancelled
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
