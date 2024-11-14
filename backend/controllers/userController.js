@@ -5,7 +5,8 @@ import appointmentModel from "../models/appointmentModel.js";
 import doctorModel from "../models/doctorModel.js";
 import jwt from "jsonwebtoken";
 import { v2 as cloudinary } from "cloudinary";
-
+import Stripe from "stripe";
+const stripe = Stripe("sk_test_51NOo9NBnNH1WMEecHe9jqIbIRaGaqAK9XMCdd4n5SyLpE2fsJiYE5i0vbsrXG4sTZpsTGFta0jxOqzat5kE0bhDs00SgRN1lGo");
 // API to register user
 const registerUser = async (req, res) => {
   try {
@@ -152,6 +153,7 @@ const listAppointment = async (req, res) => {
   }
 };
 
+// API to cancel appointment
 const cancelAppointment = async (req, res) => {
   try {
     const { userId, appointmentId } = req.body;
@@ -163,7 +165,6 @@ const cancelAppointment = async (req, res) => {
     await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
 
     // releasing doctor slot
-    console.log(appointmentData);
     const { docId, slotDate, slotTime } = appointmentData;
     const doctorData = await doctorModel.findById(docId);
     let slots_booked = doctorData.slots_booked;
@@ -178,4 +179,57 @@ const cancelAppointment = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment };
+// API for payment integration using razorpay
+const paymentStripe = async (req, res) => {
+  const { userId, appointmentId } = req.body;
+  const appointmentData = await appointmentModel.findById(appointmentId);
+  if (userId !== appointmentData.userId) {
+    return res.json({ success: false, message: "Unauthorized" });
+  }
+
+  if (appointmentData.payment) {
+    return res.json({ success: false, message: "Payment already made" });
+  }
+
+  const { fees } = appointmentData.docData;
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "Doctor Name: " + appointmentData.docData.name,
+            description: "30 minute consultation with the doctor",
+          },
+          unit_amount: appointmentData.docData.fees,
+        },
+        quantity: 1,
+      },
+    ],
+    mode: "payment",
+    success_url: `${req.headers.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${req.headers.origin}/cancel`,
+    metadata: { appointmentId },
+  });
+
+  return res.json({ id: session.id });
+};
+
+const verifyPayment = async (req, res) => {
+  const { sessionId } = req.body;
+
+  const session = await stripe.checkout.sessions.retrieve(sessionId, {
+    expand: ["line_items", "line_items.data.price.product"],
+  });
+
+  if (session.payment_status === "paid") {
+    const appointmentId = session.metadata.appointmentId;
+    await appointmentModel.findByIdAndUpdate(appointmentId, { payment: true });
+    res.json({ success: true, message: "Payment successful" });
+  } else {
+    res.json({ success: false, message: "Payment failed" });
+  }
+};
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, paymentStripe, verifyPayment };

@@ -13,7 +13,6 @@ const port = process.env.port || 4000;
 // Connect to database
 try {
   connectDB();
-  console.log("Database connected successfully");
 } catch (error) {
   console.error("Database connection failed:", error);
 }

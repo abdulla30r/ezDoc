@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { loadStripe } from "@stripe/stripe-js";
 
 const MyAppointments = () => {
   const { backendurl, token, getDoctorData } = useContext(AppContext);
@@ -35,6 +36,32 @@ const MyAppointments = () => {
     }
   };
 
+  const paymentStripe = async (appointmentId) => {
+    const stripe = await loadStripe("pk_test_51NOo9NBnNH1WMEecGeKIJAa95AG2S9vlqO2fQTmy9on9zhuBaVtQYg3NROLIakBgUMalpIWf5gzHX4LCVozWArco00kIADU4R5");
+
+    const { data } = await axios.post(
+      backendurl + "/api/user/payment-stripe",
+      { appointmentId },
+      { headers: { token, "Content-Type": "application/json" } }
+    );
+
+    console.log(data.id);
+
+    stripe.redirectToCheckout({
+      sessionId: data.id,
+    });
+    // try {
+    //   const { data } = await axios.post(backendurl + "/api/user/payment-stripe", { appointmentId }, { headers: { token } });
+    //   if (data.success) {
+    //     toast.success(data.message);
+    //   } else {
+    //     toast.error(data.message);
+    //   }
+    // } catch (error) {
+    //   toast.error(error.message);
+    // }
+  };
+
   useEffect(() => {
     if (token) {
       getUserAppointments();
@@ -59,10 +86,13 @@ const MyAppointments = () => {
                 <span className="text-sm text-neutral-700 font-medium">Date & Time : </span> {item.slotDate} | {item.slotTime}
               </p>
             </div>
-            {!item.cancelled && !item.paid && (
+            {!item.cancelled && !item.payment && (
               <div>
                 <div className="flex flex-col gap-2 justify-end">
-                  <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border hover:bg-primary hover:text-white transition-all duration-300">
+                  <button
+                    onClick={() => paymentStripe(item._id)}
+                    className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border hover:bg-primary hover:text-white transition-all duration-300"
+                  >
                     Pay Online
                   </button>
 
@@ -76,7 +106,7 @@ const MyAppointments = () => {
               </div>
             )}
 
-            {item.paid && (
+            {item.payment && (
               <div>
                 <button className="text-sm text-blue-500 text-center sm:min-w-48 py-2 border border-blue-500 hover:bg-red-600 hover:text-white transition-all duration-300 cursor-not-allowed">
                   Paid
