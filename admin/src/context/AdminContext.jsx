@@ -14,6 +14,7 @@ const AdminContextProvider = (props) => {
   const [aToken, setAToken] = useState(localStorage.getItem("aToken") ? localStorage.getItem("aToken") : "");
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [dashData, setDashData] = useState({});
 
   const verifyAdmin = async () => {
     try {
@@ -63,7 +64,20 @@ const AdminContextProvider = (props) => {
     try {
       const { data } = await axios.get(backendUrl + "/api/admin/all-appointments", { headers: { aToken } });
       if (data.success) {
-        setAppointments(data.appointments);
+        setAppointments(data.appointments.reverse());
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
+  const getAdminDashboard = async () => {
+    try {
+      const { data } = await axios.get(backendUrl + "/api/admin/admin-dashboard", { headers: { aToken } });
+      if (data.success) {
+        setDashData(data.dashData);
       } else {
         toast.error(data.message);
       }
@@ -90,6 +104,7 @@ const AdminContextProvider = (props) => {
         if (data.success) {
           toast.success(data.message);
           getAllAppointments();
+          getAdminDashboard();
         } else {
           toast.error(data.message);
         }
@@ -101,7 +116,19 @@ const AdminContextProvider = (props) => {
     }
   };
 
-  const value = { aToken, setAToken, backendUrl, getAllDoctors, doctors, changeAvailability, appointments, getAllAppointments, cancelAppointment };
+  const value = {
+    aToken,
+    setAToken,
+    backendUrl,
+    getAllDoctors,
+    doctors,
+    changeAvailability,
+    appointments,
+    getAllAppointments,
+    cancelAppointment,
+    getAdminDashboard,
+    dashData,
+  };
   // eslint-disable-next-line react/prop-types
   return <AdminContext.Provider value={value}>{props.children}</AdminContext.Provider>;
 };
