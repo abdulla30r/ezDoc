@@ -203,7 +203,7 @@ const paymentStripe = async (req, res) => {
             name: "Doctor Name: " + appointmentData.docData.name,
             description: "30 minute consultation with the doctor",
           },
-          unit_amount: appointmentData.docData.fees,
+          unit_amount: appointmentData.docData.fees * 100,
         },
         quantity: 1,
       },

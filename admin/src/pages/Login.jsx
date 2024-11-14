@@ -3,24 +3,33 @@ import { useState, useContext } from "react";
 import { AdminContext } from "../context/AdminContext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { DoctorContext } from "../context/DoctorContext";
 
 const Login = () => {
   const [state, setState] = useState("Admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { setAToken, backendUrl } = useContext(AdminContext);
+  const { setDToken } = useContext(DoctorContext);
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
     try {
       if (state === "Admin") {
-        const { data } = await axios.post(backendUrl + "/api/admin/login", {
-          email,
-          password,
-        });
+        const { data } = await axios.post(backendUrl + "/api/admin/login", { email, password });
         if (data.success) {
           localStorage.setItem("aToken", data.token);
+          localStorage.removeItem("dToken");
           setAToken(data.token);
+        } else {
+          toast.error(data.message);
+        }
+      } else {
+        const { data } = await axios.post(backendUrl + "/api/doctor/login", { email, password });
+        if (data.success) {
+          localStorage.setItem("dToken", data.token);
+          localStorage.removeItem("aToken");
+          setDToken(data.token);
         } else {
           toast.error(data.message);
         }
@@ -56,27 +65,19 @@ const Login = () => {
             required
           />
         </div>
-        <button className="bg-primary text-white w-full py-2 text-base rounded-md">
-          Login
-        </button>
+        <button className="bg-primary text-white w-full py-2 text-base rounded-md">Login</button>
 
         {state === "Admin" ? (
           <p>
             Doctor Login?{" "}
-            <span
-              className="text-primary underline cursor-pointer"
-              onClick={() => setState("Doctor")}
-            >
+            <span className="text-primary underline cursor-pointer" onClick={() => setState("Doctor")}>
               Click here
             </span>
           </p>
         ) : (
           <p>
             Admin Login?{" "}
-            <span
-              className="text-primary underline cursor-pointer"
-              onClick={() => setState("Admin")}
-            >
+            <span className="text-primary underline cursor-pointer" onClick={() => setState("Admin")}>
               Click here
             </span>
           </p>
