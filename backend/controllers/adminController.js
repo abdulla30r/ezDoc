@@ -7,31 +7,11 @@ import jwt from "jsonwebtoken";
 // API for adding doctor
 const addDoctor = async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      speciality,
-      degree,
-      experience,
-      about,
-      fees,
-      address,
-    } = req.body;
+    const { name, email, password, speciality, degree, experience, about, fees, address } = req.body;
     const imageFile = req.file;
 
     // check if all field are filled
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !speciality ||
-      !degree ||
-      !experience ||
-      !about ||
-      !fees ||
-      !address
-    ) {
+    if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
       console.log("all fields are required");
       return res.json({ success: false, message: "All fields are required" });
     }
@@ -85,10 +65,7 @@ const addDoctor = async (req, res) => {
 const adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (
-      email === process.env.ADMIN_EMAIL &&
-      password === process.env.ADMIN_PASSWORD
-    ) {
+    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
       const token = jwt.sign(email + password, process.env.JWT_SECRET);
       return res.json({ success: true, token });
     } else {
@@ -109,4 +86,9 @@ const allDoctors = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
-export { addDoctor, adminLogin, allDoctors };
+
+const verifyAdmin = async (req, res) => {
+  res.json({ success: true });
+};
+
+export { addDoctor, adminLogin, allDoctors, verifyAdmin };

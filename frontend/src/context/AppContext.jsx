@@ -32,6 +32,8 @@ const AppContextProvider = (props) => {
         setUserData(data.userData);
       } else {
         setUserData(false);
+        localStorage.removeItem("token");
+        setToken("");
       }
     } catch (error) {
       toast.error(error.message);
