@@ -6,8 +6,14 @@ import AdminContextProvider from "./context/AdminContext.jsx";
 import DoctorContextProvider from "./context/DoctorContext.jsx";
 import AppContextProvider from "./context/AppContext.jsx";
 
+// Enable the future flag
+const future = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+};
+
 createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
+  <BrowserRouter future={future}>
     <AdminContextProvider>
       <DoctorContextProvider>
         <AppContextProvider>
