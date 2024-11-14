@@ -1,7 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AppContext = createContext();
 
 const AppContextProvider = (props) => {
@@ -49,6 +51,7 @@ const AppContextProvider = (props) => {
   useEffect(() => {
     loadUserProfile();
   }, [token]);
+  // eslint-disable-next-line react/prop-types
   return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;
 };
 export default AppContextProvider;
