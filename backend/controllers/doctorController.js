@@ -120,4 +120,44 @@ const completeAppointment = async (req, res) => {
   }
 };
 
-export { changeAvailability, doctorList, doctorLogin, verifyDoctor, getDoctorData, getAppointments, cancelAppointment, completeAppointment };
+const getDoctorDashboard = async (req, res) => {
+  const { doctorId } = req.body;
+  const appointments = await appointModel.find({ docId: doctorId });
+
+  let earning = 0;
+
+  appointments.map((item) => {
+    if (item.isCompleted && item.payment) {
+      earning += item.amount;
+    }
+  });
+
+  let patients = [];
+
+  appointments.forEach((item) => {
+    if (!patients.includes(item.userId)) {
+      patients.push(item.userId);
+    }
+  });
+
+  const dashData = {
+    earning,
+    appointments: appointments.length,
+    patients: patients.length,
+    latestAppointments: appointments.reverse().slice(0, 5),
+  };
+
+  res.json({ success: true, dashData });
+};
+
+export {
+  changeAvailability,
+  doctorList,
+  doctorLogin,
+  verifyDoctor,
+  getDoctorData,
+  getAppointments,
+  cancelAppointment,
+  completeAppointment,
+  getDoctorDashboard,
+};

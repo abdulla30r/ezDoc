@@ -86,7 +86,17 @@ const MyAppointments = () => {
                 <span className="text-sm text-neutral-700 font-medium">Date & Time : </span> {item.slotDate} | {item.slotTime}
               </p>
             </div>
-            {!item.cancelled && !item.payment && (
+
+            {item.isCompleted && (
+              <div>
+                <div className="flex flex-col gap-2 justify-end">
+                  <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border hover:bg-primary hover:text-white transition-all duration-300">
+                    Completed
+                  </button>
+                </div>
+              </div>
+            )}
+            {!item.isCompleted && !item.cancelled && !item.payment && (
               <div>
                 <div className="flex flex-col gap-2 justify-end">
                   <button
@@ -106,7 +116,7 @@ const MyAppointments = () => {
               </div>
             )}
 
-            {item.payment && (
+            {!item.isCompleted && item.payment && (
               <div>
                 <button className="text-sm text-blue-500 text-center sm:min-w-48 py-2 border border-blue-500 hover:bg-red-600 hover:text-white transition-all duration-300 cursor-not-allowed">
                   Paid

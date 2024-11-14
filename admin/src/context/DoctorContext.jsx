@@ -9,6 +9,7 @@ const DoctorContextProvider = (props) => {
   const [dToken, setDToken] = useState(localStorage.getItem("dToken") ? localStorage.getItem("dToken") : "");
   const [docData, setDocData] = useState({});
   const [appointments, setAppointments] = useState([]);
+  const [docDashData, setDocDashData] = useState({});
 
   const verifyDoctor = async () => {
     try {
@@ -110,11 +111,36 @@ const DoctorContextProvider = (props) => {
     }
   };
 
+  const getDoctorDashboard = async () => {
+    try {
+      const { data } = await axios.get(backendUrl + "/api/doctor/doctor-dashboard", { headers: { dToken } });
+      if (data.success) {
+        setDocDashData(data.dashData);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
   useEffect(() => {
     verifyDoctor();
   }, [dToken]);
 
-  const value = { dToken, setDToken, backendUrl, getAppointments, getDoctorData, docData, appointments, cancelAppointment, completeAppointment };
+  const value = {
+    dToken,
+    setDToken,
+    backendUrl,
+    getAppointments,
+    getDoctorData,
+    docData,
+    appointments,
+    cancelAppointment,
+    completeAppointment,
+    getDoctorDashboard,
+    docDashData,
+  };
 
   // eslint-disable-next-line react/prop-types
   return <DoctorContext.Provider value={value}>{props.children}</DoctorContext.Provider>;
