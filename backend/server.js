@@ -42,4 +42,6 @@ app.get("/", (req, res) => {
 });
 
 // Start the server
-export default app;
+app.listen(port, () => {
+  console.log(`Server started on port ${port}`);
+});
