@@ -42,4 +42,4 @@ app.get("/", (req, res) => {
 });
 
 // Start the server
-module.exports = app;
+export default app;
